@@ -35,6 +35,7 @@
               <p>
                 <%= agenda.title %>
                 <i class="right fa fa-angle-left"></i>
+                <%= link_to I18n.t('views.button.delete'), agenda, method: :delete, data: { confirm: 'Are you sure?' }%>
               </p>
             </a>
             <ul class="nav nav-treeview" style="display: block;">
