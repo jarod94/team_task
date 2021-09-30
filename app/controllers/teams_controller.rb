@@ -43,18 +43,13 @@ class TeamsController < ApplicationController
        redirect_to team_path(@working_team.id), notice: I18n.t('views.messages.failed_to_transfer_authority')
      end
    end
+
   def update
-
-    if current_user.id == @team.owner_id
-       if @team.update(team_params)
-         redirect_to @team, notice: I18n.t('views.messages.update_team')
-       else
-         flash.now[:error] = I18n.t('views.messages.failed_to_save_team')
-         render :edit
-       end
+    if @team.update(team_params)
+      redirect_to @team, notice: I18n.t('views.messages.update_team')
     else
-
-      redirect_to @team, notice: I18n.t('views.messages.only_team_owner')
+      flash.now[:error] = I18n.t('views.messages.failed_to_save_team')
+      render :edit
     end
   end
 
