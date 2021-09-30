@@ -4,20 +4,23 @@ class AssignsController < ApplicationController
   before_action :user_exist?, only: [:create]
 
   def create
-    team = find_team(params[:team_id])
-    user = email_reliable?(assign_params) ? User.find_or_create_by_email(assign_params) : nil
-    if user
-      team.invite_member(user)
-      redirect_to team_url(team), notice: I18n.t('views.messages.assigned')
+    team = Team.friendly.find(params[:team_id])
+    if User.where(email: assign_params).any?
+         user = email_reliable?(assign_params) ? User.find_or_create_by_email(assign_params) : nil
+         if user
+           team.invite_member(user)
+           redirect_to team_url(team), notice: I18n.t('views.messages.assigned')
+         else
+           redirect_to team_url(team), notice: I18n.t('views.messages.failed_to_assign')
+         end
     else
-      redirect_to team_url(team), notice: I18n.t('views.messages.failed_to_assign')
+      redirect_to team_url(team), notice: I18n.t('views.messages.enter_proper_user')
     end
   end
 
   def destroy
     assign = Assign.find(params[:id])
     destroy_message = assign_destroy(assign, assign.user)
-
     redirect_to team_url(params[:team_id]), notice: destroy_message
   end
 
@@ -63,6 +66,6 @@ class AssignsController < ApplicationController
   end
 
   def find_team(team_id)
-    Team.friendly.find(params[:team_id])
+    team = Team.friendly.find(params[:team_id])
   end
 end
