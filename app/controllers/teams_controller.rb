@@ -1,6 +1,7 @@
 class TeamsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_team, only: %i[show edit update destroy]
+  before_action:set_team,only: %i[show edit update destroy give_authority]
 
   def index
     @teams = Team.all
@@ -29,12 +30,31 @@ class TeamsController < ApplicationController
     end
   end
 
+  def give_authority
+     if current_user.id == @working_team.owner_id
+        assign = Assign.find(params[:assign])
+        if @working_team.update(owner_id: assign.user.id)
+            TeamOwnerMailer.mail_new_owner(assign.user.email).deliver
+            redirect_back(fallback_location: team_path(@working_team))
+       else
+         redirect_to team_path(@working_team.id), notice: I18n.t('views.messages.failed_to_transfer_authority')
+       end
+     else
+       redirect_to team_path(@working_team.id), notice: I18n.t('views.messages.failed_to_transfer_authority')
+     end
+   end
   def update
-    if @team.update(team_params)
-      redirect_to @team, notice: I18n.t('views.messages.update_team')
+
+    if current_user.id == @team.owner_id
+       if @team.update(team_params)
+         redirect_to @team, notice: I18n.t('views.messages.update_team')
+       else
+         flash.now[:error] = I18n.t('views.messages.failed_to_save_team')
+         render :edit
+       end
     else
-      flash.now[:error] = I18n.t('views.messages.failed_to_save_team')
-      render :edit
+
+      redirect_to @team, notice: I18n.t('views.messages.only_team_owner')
     end
   end
 
